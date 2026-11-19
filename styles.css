@@ -221,3 +221,10 @@ body:not(.admin) .so-admin { display: none !important; }
 .mover-menu button.atual { color: var(--verde); font-weight: 600; cursor: default; }
 .mover-menu .ponto { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--mut); margin: 0 4px; flex: none; }
 .mover-menu button[data-etapa="comprou"] .ponto { border-color: var(--verde); background: var(--verde); }
+
+/* Colunas finais */
+.et-gratuito { --cor: #b083f0; }
+.et-gratuito .col-count { background: #b083f0; color: #1a0f2b; border-color: #b083f0; }
+.et-sem_interesse { --cor: var(--vermelho); }
+.mover-menu button[data-etapa="gratuito"] .ponto { border-color: #b083f0; background: #b083f0; }
+.mover-menu button[data-etapa="sem_interesse"] .ponto { border-color: var(--vermelho); }

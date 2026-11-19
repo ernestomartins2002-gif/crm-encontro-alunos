@@ -19,6 +19,8 @@ const ETAPAS = {
   atendeu: 'Atendeu a ligação',
   interesse: 'Demonstrou interesse',
   comprou: 'Comprou o ingresso',
+  gratuito: 'Ingressos gratuitos',
+  sem_interesse: 'Não tem interesse',
 };
 const PROXIMA_LIGACAO = { origem: 'ligou1', ligou1: 'ligou2', ligou2: 'ligou3', ligou3: 'ligou4', ligou4: 'ligou5' };
 const COLUNAS = [
@@ -178,7 +180,7 @@ function demoStore() {
 }
 
 // ---------- estado ----------
-const state = { leads: [], pendentes: [], perfis: [], user: null, busca: '', filtro: 'todos', verSemInteresse: false, aberto: null };
+const state = { leads: [], pendentes: [], perfis: [], user: null, busca: '', filtro: 'todos', aberto: null };
 let store;
 const porId = id => state.leads.find(l => l.id === id);
 const souAdmin = () => state.user?.papel === 'admin';
@@ -325,7 +327,6 @@ function proximaTarefaPorLead() {
 }
 
 function passaFiltro(l) {
-  if (l.sem_interesse && !state.verSemInteresse) return false;
   if (souAdmin()) {
     if (state.filtro === 'livres' && l.responsavel_id) return false;
     if (state.filtro !== 'todos' && state.filtro !== 'livres' && l.responsavel_id !== state.filtro) return false;
@@ -357,19 +358,20 @@ function renderQuadro() {
     body.scrollTop = topo;
   }
 
-  const ativos = state.leads.filter(l => !l.sem_interesse);
-  const vendidos = state.leads.filter(l => l.etapa === 'comprou').length;
-  const emContato = ativos.filter(l => l.etapa !== 'origem' && l.etapa !== 'comprou').length;
+  const conta = f => state.leads.filter(f).length;
+  const vendidos = conta(l => l.etapa === 'comprou');
+  const gratuitos = conta(l => l.etapa === 'gratuito');
+  const emContato = conta(l => /^ligou|^atendeu$|^interesse$/.test(l.etapa));
   $('#resumo').innerHTML =
     `<span><strong>${state.leads.length}</strong>leads</span>` +
     `<span><strong>${emContato}</strong>em contato</span>` +
-    `<span class="vendidos"><strong>${vendidos}</strong>ingressos vendidos</span>`;
+    `<span class="vendidos"><strong>${vendidos}</strong>ingressos vendidos</span>` +
+    `<span><strong>${gratuitos}</strong>gratuitos</span>`;
 }
 
 function chipsHTML(l) {
   const chips = String(l.origens || l.origem_principal).split(',').filter(id => ORIGENS[id])
     .map(id => `<span class="chip c-${id}">${esc(ORIGENS[id].curto)}</span>`);
-  if (l.sem_interesse) chips.push('<span class="chip sem">Sem interesse</span>');
   return chips.join('');
 }
 
@@ -384,7 +386,7 @@ function cardHTML(l, proxTarefa) {
       : `<span style="color:var(--c-enquete)">${icone('user')}Sem vendedor</span>`);
   }
   if (proxTarefa) meta.push(`<span class="${proxTarefa <= hoje() ? 'atrasada' : ''}">${icone('clock')}${proxTarefa === hoje() ? 'Hoje' : fmtData(proxTarefa)}</span>`);
-  return `<article class="card${l.sem_interesse ? ' sem-interesse' : ''}" draggable="true" data-id="${esc(l.id)}">
+  return `<article class="card${l.etapa === 'sem_interesse' ? ' sem-interesse' : ''}" draggable="true" data-id="${esc(l.id)}">
     <div class="card-nome">${esc(l.nome)}</div>
     ${tel}
     <div class="chips">${chipsHTML(l)}</div>
@@ -512,7 +514,6 @@ function renderFichaTopo(l) {
     const opcoes = [['', '— Sem vendedor —'], ...vendedores().map(p => [p.id, p.nome])];
     $('#m-resp-select').innerHTML = opcoes.map(([v, t]) => `<option value="${esc(v)}"${v === (l.responsavel_id || '') ? ' selected' : ''}>${esc(t)}</option>`).join('');
   }
-  $('#m-sem-interesse').textContent = l.sem_interesse ? 'Reativar lead' : 'Marcar sem interesse';
 }
 
 async function carregarTarefas(id) {
@@ -567,16 +568,16 @@ function renderEquipe() {
   // tabela
   const linha = (rotulo, lista, classe = '') => {
     const c = f => lista.filter(f).length;
-    const ativos = lista.filter(l => !l.sem_interesse);
-    return `<tr class="${classe}"><td>${rotulo}</td><td class="num">${ativos.length}</td>
-      <td class="num">${c(l => !l.sem_interesse && l.etapa === 'origem')}</td>
-      <td class="num">${c(l => !l.sem_interesse && l.etapa.startsWith('ligou'))}</td>
-      <td class="num">${c(l => !l.sem_interesse && (l.etapa === 'atendeu' || l.etapa === 'interesse'))}</td>
+    return `<tr class="${classe}"><td>${rotulo}</td><td class="num">${lista.length}</td>
+      <td class="num">${c(l => l.etapa === 'origem')}</td>
+      <td class="num">${c(l => l.etapa.startsWith('ligou'))}</td>
+      <td class="num">${c(l => l.etapa === 'atendeu' || l.etapa === 'interesse')}</td>
       <td class="num">${c(l => l.etapa === 'comprou')}</td>
-      <td class="num">${c(l => l.sem_interesse)}</td></tr>`;
+      <td class="num">${c(l => l.etapa === 'gratuito')}</td>
+      <td class="num">${c(l => l.etapa === 'sem_interesse')}</td></tr>`;
   };
   const equipe = vendedores();
-  $('#eq-tabela').innerHTML = `<thead><tr><th>Vendedor</th><th class="num">Leads</th><th class="num">Não ligou</th><th class="num">Ligando</th><th class="num">Atendeu/Interesse</th><th class="num">Vendidos</th><th class="num">Sem interesse</th></tr></thead><tbody>` +
+  $('#eq-tabela').innerHTML = `<thead><tr><th>Vendedor</th><th class="num">Leads</th><th class="num">Não ligou</th><th class="num">Ligando</th><th class="num">Atendeu/Interesse</th><th class="num">Vendidos</th><th class="num">Gratuitos</th><th class="num">Sem interesse</th></tr></thead><tbody>` +
     equipe.map(p => linha(`${esc(p.nome)}${p.papel === 'admin' ? '<span class="papel">gestor</span>' : ''}`, state.leads.filter(l => l.responsavel_id === p.id))).join('') +
     linha('Sem vendedor', state.leads.filter(l => !l.responsavel_id), 'livre') + '</tbody>';
   $('#eq-add-form').hidden = !DEMO;
@@ -609,7 +610,7 @@ function renderEquipe() {
 function filtroDivisao() {
   const de = $('#div-de').value;
   const soNovos = $('#div-so-novos').checked;
-  return l => !l.sem_interesse && (de === 'livres' ? !l.responsavel_id : l.responsavel_id === de) && (!soNovos || l.etapa === 'origem');
+  return l => l.etapa !== 'sem_interesse' && (de === 'livres' ? !l.responsavel_id : l.responsavel_id === de) && (!soNovos || l.etapa === 'origem');
 }
 
 function planoDivisao() {
@@ -775,12 +776,12 @@ async function importarArquivo(arquivo) {
 
 function exportarCSV() {
   const cel = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const cab = ['Nome', 'Telefone / WhatsApp', '@ / E-mail', 'Origem', 'Etapa', 'Vendedor', 'Sem interesse', 'Atualizado em', 'Atualizado por'];
+  const cab = ['Nome', 'Telefone / WhatsApp', '@ / E-mail', 'Origem', 'Etapa', 'Vendedor', 'Atualizado em', 'Atualizado por'];
   const linhas = state.leads.map(l => [
     l.nome, l.telefone, l.email,
     String(l.origens).split(',').map(id => ORIGENS[id]?.nome || id).join(' + '),
     l.etapa === 'origem' ? 'Ainda não contatado' : ETAPAS[l.etapa],
-    l.responsavel_id ? nomeDe(l.responsavel_id) : '', l.sem_interesse ? 'Sim' : '', l.atualizado_em ? fmtDataHora(l.atualizado_em) : '', l.atualizado_por,
+    l.responsavel_id ? nomeDe(l.responsavel_id) : '', l.atualizado_em ? fmtDataHora(l.atualizado_em) : '', l.atualizado_por,
   ].map(cel).join(','));
   const blob = new Blob(['﻿' + [cab.map(cel).join(','), ...linhas].join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
@@ -811,7 +812,6 @@ function ligarEventosFixos() {
     buscaTimer = setTimeout(() => { state.busca = e.target.value; renderQuadro(); }, 150);
   });
   $('#filtro').addEventListener('change', e => { state.filtro = e.target.value; renderQuadro(); });
-  $('#ver-sem-interesse').addEventListener('change', e => { state.verSemInteresse = e.target.checked; renderQuadro(); });
 
   $('#sino-btn').addEventListener('click', e => { e.stopPropagation(); $('#menu-painel').hidden = true; $('#sino-painel').hidden = !$('#sino-painel').hidden; });
   $('#sino-lista').addEventListener('click', e => { const b = e.target.closest('.sino-item'); if (b) abrirLead(b.dataset.lead); });
@@ -880,10 +880,6 @@ function ligarEventosFixos() {
     if (!DEMO) return;
     $('#vercomo').innerHTML = state.perfis.map(p =>
       `<option value="${esc(p.id)}"${p.id === state.user.id ? ' selected' : ''}>${esc(p.nome || 'Sem nome')} (${p.papel === 'admin' ? 'gestor' : 'vendedor'})</option>`).join('');
-  });
-  $('#m-sem-interesse').addEventListener('click', () => {
-    const l = porId(state.aberto);
-    if (l) salvarLead(l, { sem_interesse: !l.sem_interesse }, l.sem_interesse ? 'Reativou o lead' : 'Marcou como sem interesse');
   });
 
   $('#tarefa-form').addEventListener('submit', async e => {
