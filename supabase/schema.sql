@@ -115,6 +115,15 @@ drop policy if exists acesso           on public.observacoes;
 drop policy if exists acesso           on public.tarefas;
 drop policy if exists acesso           on public.historico;
 
+-- Permissões da API: só usuários logados (nada para visitantes anônimos).
+-- Explícitas para funcionar mesmo com "Grant API access to new tables automatically" desligado.
+revoke all on public.perfis, public.leads, public.observacoes, public.tarefas, public.historico from anon;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.leads, public.observacoes, public.tarefas, public.historico to authenticated;
+grant select on public.perfis to authenticated;
+revoke execute on function public.sou_admin(), public.lead_e_meu(uuid) from public, anon;
+grant execute on function public.sou_admin(), public.lead_e_meu(uuid) to authenticated;
+
 -- todo mundo da equipe vê os nomes dos colegas; cada um só altera o próprio nome
 create policy ver_equipe      on public.perfis for select to authenticated using (true);
 create policy editar_meu_nome on public.perfis for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
