@@ -1,0 +1,4 @@
+# Nunca suba a lista de leads (telefones e e-mails) para o GitHub
+*.csv
+dados/
+.DS_Store
