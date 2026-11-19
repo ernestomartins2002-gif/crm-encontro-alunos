@@ -236,3 +236,5 @@ body:not(.admin) .so-admin { display: none !important; }
 .card-copiar:hover, .card-copiar:focus-visible { background: var(--verde); color: #0b1a12; outline: none; }
 .card-copiar svg { width: 13px; height: 13px; }
 .card-copiar.copiado, #m-copiar.copiado { color: var(--verde); border-color: var(--verde); }
+.et-agendado { --cor: var(--c-enquete); }
+.mover-menu button[data-etapa="agendado"] .ponto { border-color: var(--c-enquete); background: var(--c-enquete); }

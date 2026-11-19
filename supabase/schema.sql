@@ -48,7 +48,7 @@ create table if not exists public.leads (
   origens              text not null,                 -- ex.: "enquete,formacao,gps"
   origem_principal     text not null check (origem_principal in ('enquete','caixinha','formacao','gps')),
   etapa                text not null default 'origem'
-                       check (etapa in ('origem','ligou1','ligou2','ligou3','ligou4','ligou5','atendeu','interesse','comprou','gratuito','sem_interesse')),
+                       check (etapa in ('origem','ligou1','ligou2','ligou3','ligou4','ligou5','atendeu','interesse','agendado','comprou','gratuito','sem_interesse')),
   responsavel_id       uuid references public.perfis(id) on delete set null,
   sem_interesse        boolean not null default false,  -- não usado: virou a etapa 'sem_interesse'
   observacao_importada text,
