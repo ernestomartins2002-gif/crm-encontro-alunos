@@ -608,6 +608,7 @@ function renderPrevia() {
   const total = [...plano.values()].reduce((s, ids) => s + ids.length, 0);
   const btn = $('#div-btn');
   btn.disabled = !total;
+  btn.textContent = 'Dividir leads';
   if (!plano.size) { $('#div-previa').textContent = 'Marque pelo menos um vendedor para receber os leads.'; return; }
   if (!candidatos.length) { $('#div-previa').textContent = 'Nenhum lead encontrado com esses filtros.'; return; }
   $('#div-previa').innerHTML = `<strong>${total}</strong> de ${candidatos.length} leads serão divididos: ` +
