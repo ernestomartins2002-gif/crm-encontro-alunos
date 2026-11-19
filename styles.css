@@ -231,7 +231,8 @@ body:not(.admin) .so-admin { display: none !important; }
 
 /* Copiar número */
 .card-tel-linha { display: flex; align-items: center; gap: 8px; }
-.card-copiar { flex: none; display: inline-grid; place-items: center; width: 28px; height: 26px; padding: 0; border-radius: 8px; border: 1px solid var(--borda); background: var(--painel); color: var(--mut); cursor: pointer; }
-.card-copiar:hover, .card-copiar:focus-visible { color: var(--verde); border-color: var(--verde); outline: none; }
-.card-copiar svg { width: 14px; height: 14px; }
+.card-tel-linha { flex-wrap: wrap; }
+.card-copiar { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--verde-forte); background: #17231d; color: var(--verde); font-size: 12px; font-weight: 600; cursor: pointer; }
+.card-copiar:hover, .card-copiar:focus-visible { background: var(--verde); color: #0b1a12; outline: none; }
+.card-copiar svg { width: 13px; height: 13px; }
 .card-copiar.copiado, #m-copiar.copiado { color: var(--verde); border-color: var(--verde); }

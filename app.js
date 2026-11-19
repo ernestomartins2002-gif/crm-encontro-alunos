@@ -379,7 +379,7 @@ function chipsHTML(l) {
 
 function cardHTML(l, proxTarefa) {
   const tel = telValido(l.telefone)
-    ? `<div class="card-tel-linha"><a class="card-tel" href="tel:+55${dig(l.telefone)}">${icone('phone')}${esc(l.telefone)}</a><button class="card-copiar" data-tel="${dig(l.telefone)}" title="Copiar número com DDD" aria-label="Copiar número com DDD">${icone('copy')}</button></div>`
+    ? `<div class="card-tel-linha"><a class="card-tel" href="tel:+55${dig(l.telefone)}">${icone('phone')}${esc(l.telefone)}</a><button class="card-copiar" data-tel="${dig(l.telefone)}" title="Copiar número com DDD" aria-label="Copiar número com DDD">${icone('copy')}<span>Copiar</span></button></div>`
     : '<span class="card-tel falta">Sem número · verificar</span>';
   const meta = [];
   if (souAdmin()) {
@@ -452,8 +452,11 @@ async function copiarNumero(numero, botao) {
   if (botao) {
     botao.classList.add('copiado');
     const uso = botao.querySelector('use');
+    const rotulo = botao.querySelector('span');
+    const textoAntes = rotulo?.textContent;
     uso?.setAttribute('href', '#i-check');
-    setTimeout(() => { botao.classList.remove('copiado'); uso?.setAttribute('href', '#i-copy'); }, 1500);
+    if (rotulo) rotulo.textContent = 'Copiado';
+    setTimeout(() => { botao.classList.remove('copiado'); uso?.setAttribute('href', '#i-copy'); if (rotulo) rotulo.textContent = textoAntes; }, 1500);
   }
 }
 
