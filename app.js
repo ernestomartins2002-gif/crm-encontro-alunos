@@ -303,6 +303,8 @@ function montarQuadro() {
   board.addEventListener('click', e => {
     const mv = e.target.closest('.card-mover');
     if (mv) { abrirMenuMover(mv); return; }
+    const cp = e.target.closest('.card-copiar');
+    if (cp) { copiarNumero(cp.dataset.tel, cp); return; }
     if (e.target.closest('a')) return;
     const card = e.target.closest('.card');
     if (card) abrirLead(card.dataset.id);
@@ -377,7 +379,7 @@ function chipsHTML(l) {
 
 function cardHTML(l, proxTarefa) {
   const tel = telValido(l.telefone)
-    ? `<a class="card-tel" href="tel:+55${dig(l.telefone)}">${icone('phone')}${esc(l.telefone)}</a>`
+    ? `<div class="card-tel-linha"><a class="card-tel" href="tel:+55${dig(l.telefone)}">${icone('phone')}${esc(l.telefone)}</a><button class="card-copiar" data-tel="${dig(l.telefone)}" title="Copiar número com DDD" aria-label="Copiar número com DDD">${icone('copy')}</button></div>`
     : '<span class="card-tel falta">Sem número · verificar</span>';
   const meta = [];
   if (souAdmin()) {
@@ -428,6 +430,31 @@ async function salvarLead(l, patch, descricaoHistorico) {
 function mover(l, etapa) {
   if (l.etapa === etapa) return;
   salvarLead(l, { etapa },`Moveu de "${nomeEtapa(l.etapa, l)}" para "${nomeEtapa(etapa, l)}"`);
+}
+
+// ---------- copiar número ----------
+// Copia só os dígitos com DDD (ex.: 67999916886), que é o formato que cola certo
+// no discador, no WhatsApp e em planilhas.
+async function copiarNumero(numero, botao) {
+  if (!numero) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(numero); ok = true; } catch {
+    const t = document.createElement('textarea');
+    t.value = numero;
+    t.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(t);
+    t.select();
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    t.remove();
+  }
+  if (!ok) { toast('Não foi possível copiar. Segure o número para copiar manualmente.', true); return; }
+  toast(`Número copiado: ${numero}`);
+  if (botao) {
+    botao.classList.add('copiado');
+    const uso = botao.querySelector('use');
+    uso?.setAttribute('href', '#i-check');
+    setTimeout(() => { botao.classList.remove('copiado'); uso?.setAttribute('href', '#i-copy'); }, 1500);
+  }
 }
 
 // ---------- menu da setinha (mover rápido) ----------
@@ -488,7 +515,8 @@ function renderFichaTopo(l) {
   const valido = telValido(l.telefone);
   tel.textContent = valido ? l.telefone : 'Sem número: confira no WhatsApp ou na Cakto';
   tel.classList.toggle('falta', !valido);
-  $('#m-ligar').hidden = $('#m-whats').hidden = !valido;
+  $('#m-ligar').hidden = $('#m-whats').hidden = $('#m-copiar').hidden = !valido;
+  $('#m-copiar').dataset.tel = valido ? dig(l.telefone) : '';
   if (valido) {
     $('#m-ligar').href = `tel:+55${dig(l.telefone)}`;
     $('#m-whats').href = `https://wa.me/55${dig(l.telefone)}`;
@@ -839,6 +867,7 @@ function ligarEventosFixos() {
 
   // ficha
   $('#m-fechar').addEventListener('click', fecharFicha);
+  $('#m-copiar').addEventListener('click', e => copiarNumero(e.currentTarget.dataset.tel, e.currentTarget));
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') fecharFicha(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.aberto) fecharFicha(); });
   $('#m-etapas').addEventListener('click', e => {

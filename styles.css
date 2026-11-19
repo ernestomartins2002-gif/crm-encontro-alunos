@@ -228,3 +228,10 @@ body:not(.admin) .so-admin { display: none !important; }
 .et-sem_interesse { --cor: var(--vermelho); }
 .mover-menu button[data-etapa="gratuito"] .ponto { border-color: #b083f0; background: #b083f0; }
 .mover-menu button[data-etapa="sem_interesse"] .ponto { border-color: var(--vermelho); }
+
+/* Copiar número */
+.card-tel-linha { display: flex; align-items: center; gap: 8px; }
+.card-copiar { flex: none; display: inline-grid; place-items: center; width: 28px; height: 26px; padding: 0; border-radius: 8px; border: 1px solid var(--borda); background: var(--painel); color: var(--mut); cursor: pointer; }
+.card-copiar:hover, .card-copiar:focus-visible { color: var(--verde); border-color: var(--verde); outline: none; }
+.card-copiar svg { width: 14px; height: 14px; }
+.card-copiar.copiado, #m-copiar.copiado { color: var(--verde); border-color: var(--verde); }
