@@ -201,3 +201,8 @@ body:not(.admin) .so-admin { display: none !important; }
 @media (max-width: 760px) {
   .div-grade, .eq-add { grid-template-columns: 1fr; }
 }
+
+.papel-tag { justify-self: start; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; background: var(--verde); color: #0b1a12; }
+.papel-tag.vendedor { background: var(--c-gps); color: #08162b; }
+.papel-tag:empty { display: none; }
+.usuario .papel-tag { margin-left: 2px; }

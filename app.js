@@ -214,6 +214,8 @@ async function entrar() {
   $('#login').hidden = true;
   $('#app').hidden = false;
   $('#usuario-nome').textContent = state.user.nome;
+  $('#usuario-papel').textContent = souAdmin() ? 'Gestor' : 'Vendedor';
+  $('#usuario-papel').classList.toggle('vendedor', !souAdmin());
   document.body.classList.toggle('admin', souAdmin());
   $('#menu-papel').textContent = souAdmin() ? 'Gestor: vê todos os leads' : 'Vendedor: vê só os seus leads';
   montarQuadro();
@@ -233,6 +235,14 @@ async function entrar() {
 function pedirNome() {
   return new Promise(resolve => {
     const m = $('#nome-modal');
+    const tag = $('#nome-papel');
+    tag.textContent = souAdmin() ? 'Você entrou como GESTOR' : 'Você entrou como VENDEDOR';
+    tag.classList.toggle('vendedor', !souAdmin());
+    $('#nome-explica').textContent = souAdmin()
+      ? (DEMO
+        ? 'No modo demonstração, quem abre o CRM entra como gestor. Na versão da equipe, cada pessoa entra com e-mail e senha, e quem é gestor é definido no Supabase.'
+        : 'Você vê todos os leads e divide os leads entre os vendedores. Seu nome aparece nas observações e no histórico.')
+      : 'Você vê somente os leads que o gestor passou para você. Seu nome aparece nas observações, nas tarefas e no histórico.';
     m.hidden = false;
     $('#nome-input').focus();
     $('#nome-form').onsubmit = e => {

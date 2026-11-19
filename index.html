@@ -64,7 +64,7 @@
           </div>
         </div>
         <div class="menu">
-          <button id="menu-btn" class="usuario"><svg><use href="#i-user"/></svg><span id="usuario-nome"></span></button>
+          <button id="menu-btn" class="usuario"><svg><use href="#i-user"/></svg><span id="usuario-nome"></span><span id="usuario-papel" class="papel-tag"></span></button>
           <div id="menu-painel" class="menu-painel" hidden>
             <p id="menu-papel" class="menu-papel"></p>
             <button id="btn-equipe" class="so-admin"><svg><use href="#i-user"/></svg> Equipe e divisão de leads</button>
@@ -189,8 +189,9 @@
   <!-- Nome do vendedor -->
   <div id="nome-modal" class="modal" hidden>
     <form id="nome-form" class="dialog pequeno">
+      <span id="nome-papel" class="papel-tag"></span>
       <h2>Como você se chama?</h2>
-      <p class="mut">Seu nome aparece nas observações, nas tarefas e como responsável pelos leads.</p>
+      <p id="nome-explica" class="mut"></p>
       <input id="nome-input" required placeholder="Seu nome">
       <button class="btn verde" type="submit">Continuar</button>
     </form>
