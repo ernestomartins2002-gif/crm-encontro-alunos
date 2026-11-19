@@ -299,6 +299,8 @@ function montarQuadro() {
     board.appendChild(col);
   });
   board.addEventListener('click', e => {
+    const mv = e.target.closest('.card-mover');
+    if (mv) { abrirMenuMover(mv); return; }
     if (e.target.closest('a')) return;
     const card = e.target.closest('.card');
     if (card) abrirLead(card.dataset.id);
@@ -386,7 +388,10 @@ function cardHTML(l, proxTarefa) {
     <div class="card-nome">${esc(l.nome)}</div>
     ${tel}
     <div class="chips">${chipsHTML(l)}</div>
-    ${meta.length ? `<div class="card-meta">${meta.join('')}</div>` : ''}
+    <div class="card-rodape">
+      <button class="card-mover" data-id="${esc(l.id)}" title="Mover para outra coluna" aria-label="Mover para outra coluna" aria-haspopup="menu">${icone('chev')}</button>
+      ${meta.length ? `<div class="card-meta">${meta.join('')}</div>` : ''}
+    </div>
   </article>`;
 }
 
@@ -421,6 +426,34 @@ async function salvarLead(l, patch, descricaoHistorico) {
 function mover(l, etapa) {
   if (l.etapa === etapa) return;
   salvarLead(l, { etapa },`Moveu de "${nomeEtapa(l.etapa, l)}" para "${nomeEtapa(etapa, l)}"`);
+}
+
+// ---------- menu da setinha (mover rápido) ----------
+function abrirMenuMover(btn) {
+  const l = porId(btn.dataset.id);
+  const menu = $('#mover-menu');
+  if (!l) return;
+  if (!menu.hidden && menu.dataset.id === l.id) { fecharMenuMover(); return; }
+  menu.dataset.id = l.id;
+  const opcoes = [['origem', 'Voltar para a origem'], ...Object.entries(ETAPAS)];
+  menu.innerHTML = `<p class="mover-titulo">Mover <strong>${esc(l.nome)}</strong> para:</p>` +
+    opcoes.map(([id, nome]) => l.etapa === id
+      ? `<button role="menuitem" class="atual" disabled>${icone('check')}${esc(nome)}</button>`
+      : `<button role="menuitem" data-etapa="${id}"><span class="ponto"></span>${esc(nome)}</button>`).join('');
+  menu.hidden = false;
+  const r = btn.getBoundingClientRect();
+  const { offsetHeight: h, offsetWidth: w } = menu;
+  let top = r.bottom + 6;
+  if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+  $('button[data-etapa]', menu)?.focus();
+}
+
+function fecharMenuMover() {
+  const menu = $('#mover-menu');
+  menu.hidden = true;
+  menu.dataset.id = '';
 }
 
 // ---------- ficha do lead ----------
@@ -786,7 +819,19 @@ function ligarEventosFixos() {
   document.addEventListener('click', e => {
     if (!e.target.closest('.sino')) $('#sino-painel').hidden = true;
     if (!e.target.closest('.menu')) $('#menu-painel').hidden = true;
+    if (!e.target.closest('#mover-menu') && !e.target.closest('.card-mover')) fecharMenuMover();
   });
+  $('#mover-menu').addEventListener('click', e => {
+    const b = e.target.closest('button[data-etapa]');
+    const l = porId($('#mover-menu').dataset.id);
+    if (!b || !l) return;
+    fecharMenuMover();
+    mover(l, b.dataset.etapa);
+    toast(`${l.nome} → ${b.dataset.etapa === 'origem' ? 'origem' : ETAPAS[b.dataset.etapa]}`);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharMenuMover(); });
+  document.addEventListener('scroll', e => { if (!e.target.closest?.('#mover-menu')) fecharMenuMover(); }, true);
+  window.addEventListener('resize', fecharMenuMover);
   $('#btn-importar').addEventListener('click', () => $('#arquivo').click());
   $('#arquivo').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importarArquivo(f); });
   $('#btn-exportar').addEventListener('click', exportarCSV);
