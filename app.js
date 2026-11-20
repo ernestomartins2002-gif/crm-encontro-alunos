@@ -231,8 +231,6 @@ async function entrar() {
   window.addEventListener('focus', () => {
     if (Date.now() - ultimoFoco > 30_000) { ultimoFoco = Date.now(); recarregar().catch(() => {}); }
   });
-  const n = minhasTarefasDeHoje().length;
-  if (n) toast(`Você tem ${n} tarefa${n > 1 ? 's' : ''} para hoje. Veja no sininho.`);
 }
 
 function pedirNome() {
@@ -389,7 +387,7 @@ function cardHTML(l, proxTarefa) {
       : `<span style="color:var(--c-enquete)">${icone('user')}Sem vendedor</span>`);
   }
   if (proxTarefa) meta.push(`<span class="${proxTarefa <= hoje() ? 'atrasada' : ''}">${icone('clock')}${proxTarefa === hoje() ? 'Hoje' : fmtData(proxTarefa)}</span>`);
-  return `<article class="card${l.etapa === 'sem_interesse' ? ' sem-interesse' : ''}" draggable="true" data-id="${esc(l.id)}">
+  return `<article class="card${l.etapa === 'sem_interesse' ? ' sem-interesse' : ''}${proxTarefa && proxTarefa <= hoje() ? ' tarefa-hoje' : ''}" draggable="true" data-id="${esc(l.id)}">
     <div class="card-nome">${esc(l.nome)}</div>
     ${tel}
     <div class="chips">${chipsHTML(l)}</div>
@@ -709,22 +707,66 @@ async function dividir() {
 }
 
 // ---------- sininho ----------
-function minhasTarefasDeHoje() {
+// Vendedor: tarefas de hoje (ou atrasadas) dos leads dele, não importa quem criou.
+// Gestor: tarefas de hoje de toda a equipe, com o nome do vendedor.
+// (O banco já só entrega ao vendedor as tarefas dos leads dele.)
+function tarefasDoSino() {
   const h = hoje();
-  return state.pendentes.filter(t => t.autor_id === state.user.id && t.data <= h).sort((a, b) => a.data.localeCompare(b.data));
+  return state.pendentes.filter(t => t.data <= h).sort((a, b) => a.data.localeCompare(b.data));
 }
+
+const lerStorage = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const gravarStorage = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sem storage */ } };
 
 function atualizarSino() {
   if (!state.user) return;
-  const lista = minhasTarefasDeHoje();
+  const lista = tarefasDoSino();
   const h = hoje();
-  $('#sino-badge').hidden = !lista.length;
-  $('#sino-badge').textContent = lista.length;
-  $('#sino-lista').innerHTML = lista.length ? lista.map(t => {
+  const n = lista.length;
+  $('#sino-titulo').textContent = souAdmin() ? 'Tarefas da equipe para hoje' : 'Suas tarefas para hoje';
+  $('#sino-badge').hidden = !n;
+  $('#sino-badge').textContent = n;
+  $('#sino-lista').innerHTML = n ? lista.map(t => {
     const l = porId(t.lead_id);
     const quando = t.data < h ? `<span class="atrasada">Atrasada desde ${fmtData(t.data)}</span>` : 'Hoje';
-    return `<button class="sino-item" data-lead="${esc(t.lead_id)}"><strong>${esc(t.descricao)}</strong><span>${esc(l?.nome || 'Lead')} · ${quando}</span></button>`;
+    const quem = souAdmin() && l ? ` · ${esc(l.responsavel_id ? nomeDe(l.responsavel_id) : 'Sem vendedor')}` : '';
+    return `<button class="sino-item" data-lead="${esc(t.lead_id)}"><strong>${esc(t.descricao)}</strong><span>${esc(l?.nome || 'Lead')} · ${quando}${quem}</span></button>`;
   }).join('') : '<p class="vazio">Nenhuma tarefa para hoje.</p>';
+  $('#sino-avisos').hidden = !('Notification' in window) || Notification.permission !== 'default';
+
+  // Faixa de aviso no topo: aparece sempre que há tarefa do dia que a pessoa ainda não dispensou.
+  const assinatura = h + ':' + lista.map(t => t.id).sort().join(',');
+  const chave = 'crm-aviso-' + state.user.id;
+  const aviso = $('#aviso-tarefas');
+  if (n && lerStorage(chave) !== assinatura) {
+    const atrasadas = lista.filter(t => t.data < h).length;
+    $('#aviso-texto').innerHTML = souAdmin()
+      ? `A equipe tem <strong>${n} tarefa${n > 1 ? 's' : ''}</strong> para hoje${atrasadas ? `, ${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}` : ''}.`
+      : `Você tem <strong>${n} tarefa${n > 1 ? 's' : ''}</strong> para hoje${atrasadas ? `, ${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}` : ''}: ${esc(lista[0].descricao)}${n > 1 ? '…' : ''}`;
+    aviso.hidden = false;
+    aviso.dataset.assinatura = assinatura;
+  } else {
+    aviso.hidden = true;
+  }
+
+  // Aviso do computador (se a pessoa ativou): uma vez por tarefa, por dia.
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const chaveNotif = 'crm-notificadas-' + state.user.id;
+    const ja = new Set((lerStorage(chaveNotif) || '').split(',').filter(x => x.startsWith(h)));
+    const novas = lista.filter(t => !ja.has(h + '|' + t.id));
+    if (novas.length) {
+      try {
+        const n1 = novas[0];
+        const notif = new Notification(`CRM: ${novas.length} tarefa${novas.length > 1 ? 's' : ''} para hoje`, {
+          body: `${n1.descricao} · ${porId(n1.lead_id)?.nome || ''}${novas.length > 1 ? ` e mais ${novas.length - 1}` : ''}`,
+          tag: 'crm-tarefas',
+        });
+        notif.onclick = () => { window.focus(); abrirLead(n1.lead_id); };
+      } catch { /* navegador sem suporte */ }
+      novas.forEach(t => ja.add(h + '|' + t.id));
+      gravarStorage(chaveNotif, [...ja].join(','));
+    }
+  }
 }
 
 // ---------- tempo real ----------
@@ -848,6 +890,21 @@ function ligarEventosFixos() {
 
   $('#sino-btn').addEventListener('click', e => { e.stopPropagation(); $('#menu-painel').hidden = true; $('#sino-painel').hidden = !$('#sino-painel').hidden; });
   $('#sino-lista').addEventListener('click', e => { const b = e.target.closest('.sino-item'); if (b) abrirLead(b.dataset.lead); });
+  $('#sino-avisos').addEventListener('click', async e => {
+    e.stopPropagation();
+    try { await Notification.requestPermission(); } catch { /* sem suporte */ }
+    if (Notification.permission === 'granted') toast('Pronto: o computador vai avisar quando houver tarefa do dia, com o CRM aberto.');
+    atualizarSino();
+  });
+  $('#aviso-ver').addEventListener('click', e => {
+    e.stopPropagation();
+    $('#menu-painel').hidden = true;
+    $('#sino-painel').hidden = false;
+  });
+  $('#aviso-fechar').addEventListener('click', () => {
+    gravarStorage('crm-aviso-' + state.user.id, $('#aviso-tarefas').dataset.assinatura || '');
+    $('#aviso-tarefas').hidden = true;
+  });
   $('#menu-btn').addEventListener('click', e => { e.stopPropagation(); $('#sino-painel').hidden = true; $('#menu-painel').hidden = !$('#menu-painel').hidden; });
   document.addEventListener('click', e => {
     if (!e.target.closest('.sino')) $('#sino-painel').hidden = true;

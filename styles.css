@@ -238,3 +238,16 @@ body:not(.admin) .so-admin { display: none !important; }
 .card-copiar.copiado, #m-copiar.copiado { color: var(--verde); border-color: var(--verde); }
 .et-agendado { --cor: var(--c-enquete); }
 .mover-menu button[data-etapa="agendado"] .ponto { border-color: var(--c-enquete); background: var(--c-enquete); }
+
+/* Avisos de tarefas */
+.aviso-tarefas { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 16px 0; padding: 10px 14px; border-radius: 12px; background: #2b230b; border: 1px solid #6b5514; color: #f2d77a; }
+.aviso-tarefas > svg { width: 18px; height: 18px; flex: none; }
+.aviso-tarefas span { flex: 1; min-width: 200px; }
+.aviso-tarefas strong { color: #ffe9a3; }
+.icone.pequeno { padding: 5px; border-color: #6b5514; color: #f2d77a; }
+.icone.pequeno svg { width: 14px; height: 14px; }
+.badge:not([hidden]) { animation: pulsar 1.6s ease-in-out infinite; }
+@keyframes pulsar { 0%, 100% { box-shadow: 0 0 0 0 #e5534b99; } 50% { box-shadow: 0 0 0 6px #e5534b00; } }
+@media (prefers-reduced-motion: reduce) { .badge:not([hidden]) { animation: none; } }
+.sino-avisos { width: 100%; margin-top: 10px; }
+.card.tarefa-hoje { border-color: #6b5514; box-shadow: inset 3px 0 0 var(--c-enquete); }

@@ -61,8 +61,9 @@
         <div class="sino">
           <button id="sino-btn" class="icone" aria-label="Tarefas de hoje"><svg><use href="#i-bell"/></svg><span id="sino-badge" class="badge" hidden>0</span></button>
           <div id="sino-painel" class="sino-painel" hidden>
-            <h3>Suas tarefas para hoje</h3>
+            <h3 id="sino-titulo">Suas tarefas para hoje</h3>
             <div id="sino-lista"></div>
+            <button id="sino-avisos" class="btn pequeno sino-avisos" hidden><svg><use href="#i-bell"/></svg> Ativar avisos no computador</button>
           </div>
         </div>
         <div class="menu">
@@ -81,6 +82,12 @@
         </div>
       </div>
     </header>
+    <div id="aviso-tarefas" class="aviso-tarefas" role="status" hidden>
+      <svg><use href="#i-bell"/></svg>
+      <span id="aviso-texto"></span>
+      <button id="aviso-ver" class="btn verde pequeno">Ver tarefas</button>
+      <button id="aviso-fechar" class="icone pequeno" aria-label="Dispensar aviso"><svg><use href="#i-x"/></svg></button>
+    </div>
     <main id="board" class="board"></main>
   </div>
 
