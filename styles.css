@@ -254,3 +254,8 @@ body:not(.admin) .so-admin { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .badge:not([hidden]) { animation: none; } }
 .sino-avisos { width: 100%; margin-top: 10px; }
 .card.tarefa-hoje { border-color: #6b5514; box-shadow: inset 3px 0 0 var(--c-enquete); }
+
+/* Estado do lead (pelo DDD) */
+.chip.uf { color: var(--mut); border-color: var(--borda); font-weight: 700; }
+.chip.uf.p1 { color: #0b1a12; background: var(--verde); border-color: var(--verde); }
+.chip.uf.p2 { color: #a5c8f5; border-color: #3b6aa8; }

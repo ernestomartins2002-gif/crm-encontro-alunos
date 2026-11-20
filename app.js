@@ -39,6 +39,17 @@ const agora = () => new Date().toISOString();
 const fmtData = d => (d ? String(d).slice(0, 10).split('-').reverse().join('/') : '');
 const fmtDataHora = iso => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 const telValido = t => dig(t).length >= 10;
+// Região pelo DDD: 1 = MS, 2 = estados vizinhos (MT, GO, MG, SP, PR), 3 = resto / sem número
+const DDD_UF = {};
+for (const [uf, ddds] of Object.entries({
+  MS: '67', MT: '65 66', GO: '62 64', DF: '61', MG: '31 32 33 34 35 37 38', SP: '11 12 13 14 15 16 17 18 19',
+  PR: '41 42 43 44 45 46', SC: '47 48 49', RS: '51 53 54 55', RJ: '21 22 24', ES: '27 28', BA: '71 73 74 75 77',
+  SE: '79', AL: '82', PE: '81 87', PB: '83', RN: '84', CE: '85 88', PI: '86 89', MA: '98 99', PA: '91 93 94',
+  AP: '96', AM: '92 97', RR: '95', AC: '68', RO: '69', TO: '63',
+})) for (const d of ddds.split(' ')) DDD_UF[d] = uf;
+const VIZINHOS = new Set(['MT', 'GO', 'MG', 'SP', 'PR']);
+const ufDoLead = l => (dig(l.telefone).length >= 10 ? DDD_UF[dig(l.telefone).slice(0, 2)] || '' : '');
+const prioridadeRegiao = l => { const uf = ufDoLead(l); return uf === 'MS' ? 1 : VIZINHOS.has(uf) ? 2 : 3; };
 const colunaDoLead = l => (l.etapa === 'origem' ? 'o:' + l.origem_principal : l.etapa);
 const nomeEtapa = (etapa, l) => (etapa === 'origem' ? `origem (${ORIGENS[l.origem_principal]?.nome})` : ETAPAS[etapa]);
 const icone = id => `<svg><use href="#i-${id}"/></svg>`;
@@ -351,7 +362,10 @@ function renderQuadro() {
     if (c.tipo === 'funil') {
       lista.sort((a, b) => (tarefas.get(a.id) || '9').localeCompare(tarefas.get(b.id) || '9') || String(b.atualizado_em).localeCompare(String(a.atualizado_em)));
     } else {
-      lista.sort((a, b) => (tarefas.get(a.id) || '9').localeCompare(tarefas.get(b.id) || '9'));
+      // origem: tarefa do dia primeiro, depois MS, estados vizinhos e o resto
+      lista.sort((a, b) => (tarefas.get(a.id) || '9').localeCompare(tarefas.get(b.id) || '9')
+        || prioridadeRegiao(a) - prioridadeRegiao(b)
+        || String(a.criado_em).localeCompare(String(b.criado_em)));
     }
     $('.col-count', col).textContent = lista.length;
     const topo = body.scrollTop;
@@ -373,6 +387,8 @@ function renderQuadro() {
 function chipsHTML(l) {
   const chips = String(l.origens || l.origem_principal).split(',').filter(id => ORIGENS[id])
     .map(id => `<span class="chip c-${id}">${esc(ORIGENS[id].curto)}</span>`);
+  const uf = ufDoLead(l);
+  if (uf) chips.unshift(`<span class="chip uf p${prioridadeRegiao(l)}">${uf}</span>`);
   return chips.join('');
 }
 
@@ -651,9 +667,12 @@ function planoDivisao() {
   const limite = parseInt($('#div-limite').value, 10) || Infinity;
   const ordem = Object.keys(ORIGENS);
   const base = filtroDivisao();
-  // ordenado por origem: na distribuição em rodízio cada vendedor recebe uma fatia parecida de cada origem
+  // ordem: MS, estados vizinhos e resto; dentro disso, por origem. Em rodízio, cada vendedor
+  // recebe uma fatia parecida de cada região e origem, e num lote limitado saem primeiro MS e vizinhos.
   const candidatos = state.leads.filter(l => base(l) && origens.has(l.origem_principal))
-    .sort((a, b) => ordem.indexOf(a.origem_principal) - ordem.indexOf(b.origem_principal) || String(a.criado_em).localeCompare(String(b.criado_em)));
+    .sort((a, b) => prioridadeRegiao(a) - prioridadeRegiao(b)
+      || ordem.indexOf(a.origem_principal) - ordem.indexOf(b.origem_principal)
+      || String(a.criado_em).localeCompare(String(b.criado_em)));
   const plano = new Map(para.map(id => [id, []]));
   let i = 0;
   for (const l of candidatos) {
