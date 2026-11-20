@@ -46,7 +46,7 @@ create table if not exists public.leads (
   telefone             text,
   email                text,
   origens              text not null,                 -- ex.: "enquete,formacao,gps"
-  origem_principal     text not null check (origem_principal in ('enquete','caixinha','formacao','gps')),
+  origem_principal     text not null check (origem_principal in ('enquete','caixinha','formacao','gps','kiwify')),
   etapa                text not null default 'origem'
                        check (etapa in ('origem','ligou1','ligou2','ligou3','ligou4','ligou5','interesse','agendado','comprou','gratuito','sem_interesse')),
   responsavel_id       uuid references public.perfis(id) on delete set null,

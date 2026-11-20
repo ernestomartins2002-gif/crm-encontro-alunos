@@ -9,6 +9,7 @@ const ORIGENS = {
   caixinha: { nome: 'Caixinha de perguntas',       curto: 'Caixinha de perguntas' },
   formacao: { nome: 'Cakto · Formação Elite',      curto: 'Cakto · Formação' },
   gps:      { nome: 'GPS · MS e estados vizinhos', curto: 'Comprador do GPS' },
+  kiwify:   { nome: 'Clientes Kiwify',             curto: 'Cliente Kiwify' },
 };
 const ETAPAS = {
   ligou1: 'Ligou 1 vez',
@@ -813,6 +814,7 @@ function linhaParaLead(o) {
   if (origem.includes('caixinha')) ids.push('caixinha');
   if (origem.includes('lista da cakto') || origem.includes('formacao')) ids.push('formacao');
   if (origem.includes('gps')) ids.push('gps');
+  if (origem.includes('kiwify')) ids.push('kiwify');
   const nome = (o['Nome'] || '').trim();
   if (!ids.length || !nome) return null;
   const tel = (o['Telefone / WhatsApp'] || '').trim();

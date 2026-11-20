@@ -13,6 +13,7 @@
   --c-caixinha: #db61a2;
   --c-formacao: #57ab5a;
   --c-gps: #539bf5;
+  --c-kiwify: #f0883e;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -91,6 +92,7 @@ textarea { resize: vertical; }
 .orig-caixinha { --cor: var(--c-caixinha); }
 .orig-formacao { --cor: var(--c-formacao); }
 .orig-gps { --cor: var(--c-gps); }
+.orig-kiwify { --cor: var(--c-kiwify); }
 .et-interesse { --cor: #8b96a5; }
 .et-comprou { --cor: var(--verde); }
 .et-comprou .col-count { background: var(--verde); color: #0b1a12; border-color: var(--verde); }
@@ -115,6 +117,7 @@ textarea { resize: vertical; }
 .c-caixinha { color: var(--c-caixinha); }
 .c-formacao { color: var(--c-formacao); }
 .c-gps { color: var(--c-gps); }
+.c-kiwify { color: var(--c-kiwify); }
 .chip.sem { color: var(--vermelho); }
 
 /* Ficha */
