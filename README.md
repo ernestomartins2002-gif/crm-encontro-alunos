@@ -3,7 +3,7 @@
 CRM em formato de quadro (kanban) para a equipe vender, por ligação, o encontro presencial dos alunos da Formação Corretor de Grãos Elite.
 
 **Colunas de origem:** Enquete do grupo · Caixinha de perguntas · Cakto (Formação Elite) · Compradores do GPS (MS e estados vizinhos)
-**Colunas do funil:** Ligou 1 vez → 2 → 3 → 4 → 5 vezes → Atendeu a ligação → Demonstrou interesse → Comprou o ingresso
+**Colunas do funil:** Ligou 1 vez → 2 → 3 → 4 → 5 vezes → Demonstrou interesse → Agendado para finalizar → Comprou o ingresso → Ingressos gratuitos → Não tem interesse
 
 ## Gestor e vendedores
 

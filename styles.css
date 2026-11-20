@@ -91,7 +91,7 @@ textarea { resize: vertical; }
 .orig-caixinha { --cor: var(--c-caixinha); }
 .orig-formacao { --cor: var(--c-formacao); }
 .orig-gps { --cor: var(--c-gps); }
-.et-atendeu, .et-interesse { --cor: #8b96a5; }
+.et-interesse { --cor: #8b96a5; }
 .et-comprou { --cor: var(--verde); }
 .et-comprou .col-count { background: var(--verde); color: #0b1a12; border-color: var(--verde); }
 .col-body { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }

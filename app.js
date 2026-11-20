@@ -16,7 +16,6 @@ const ETAPAS = {
   ligou3: 'Ligou 3 vezes',
   ligou4: 'Ligou 4 vezes',
   ligou5: 'Ligou 5 vezes',
-  atendeu: 'Atendeu a ligação',
   interesse: 'Demonstrou interesse',
   agendado: 'Agendado para finalizar',
   comprou: 'Comprou o ingresso',
@@ -362,7 +361,7 @@ function renderQuadro() {
   const conta = f => state.leads.filter(f).length;
   const vendidos = conta(l => l.etapa === 'comprou');
   const gratuitos = conta(l => l.etapa === 'gratuito');
-  const emContato = conta(l => /^ligou|^atendeu$|^interesse$|^agendado$/.test(l.etapa));
+  const emContato = conta(l => /^ligou|^interesse$|^agendado$/.test(l.etapa));
   $('#resumo').innerHTML =
     `<span><strong>${state.leads.length}</strong>leads</span>` +
     `<span><strong>${emContato}</strong>em contato</span>` +
@@ -601,14 +600,14 @@ function renderEquipe() {
     return `<tr class="${classe}"><td>${rotulo}</td><td class="num">${lista.length}</td>
       <td class="num">${c(l => l.etapa === 'origem')}</td>
       <td class="num">${c(l => l.etapa.startsWith('ligou'))}</td>
-      <td class="num">${c(l => l.etapa === 'atendeu' || l.etapa === 'interesse')}</td>
+      <td class="num">${c(l => l.etapa === 'interesse')}</td>
       <td class="num">${c(l => l.etapa === 'agendado')}</td>
       <td class="num">${c(l => l.etapa === 'comprou')}</td>
       <td class="num">${c(l => l.etapa === 'gratuito')}</td>
       <td class="num">${c(l => l.etapa === 'sem_interesse')}</td></tr>`;
   };
   const equipe = vendedores();
-  $('#eq-tabela').innerHTML = `<thead><tr><th>Vendedor</th><th class="num">Leads</th><th class="num">Não ligou</th><th class="num">Ligando</th><th class="num">Atendeu/Interesse</th><th class="num">Agendados</th><th class="num">Vendidos</th><th class="num">Gratuitos</th><th class="num">Sem interesse</th></tr></thead><tbody>` +
+  $('#eq-tabela').innerHTML = `<thead><tr><th>Vendedor</th><th class="num">Leads</th><th class="num">Não ligou</th><th class="num">Ligando</th><th class="num">Interesse</th><th class="num">Agendados</th><th class="num">Vendidos</th><th class="num">Gratuitos</th><th class="num">Sem interesse</th></tr></thead><tbody>` +
     equipe.map(p => linha(`${esc(p.nome)}${p.papel === 'admin' ? '<span class="papel">gestor</span>' : ''}`, state.leads.filter(l => l.responsavel_id === p.id))).join('') +
     linha('Sem vendedor', state.leads.filter(l => !l.responsavel_id), 'livre') + '</tbody>';
   $('#eq-add-form').hidden = !DEMO;
